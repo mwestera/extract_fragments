@@ -2,7 +2,7 @@ import glob
 import os
 import random
 import nltk.data
-from extract_various_fragments import utils
+import utils
 import csv
 import pandas
 import xml.etree.ElementTree
