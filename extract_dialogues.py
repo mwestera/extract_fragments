@@ -3,7 +3,7 @@ import os
 import random
 import nltk.data
 import nltk.tokenize
-from extract_various_fragments import utils
+import utils
 import csv
 import xml.etree.ElementTree
 
@@ -93,8 +93,75 @@ def extract_dialogues(text):
                 current_question_ids.append((len(dialogues), len(current_dialogue)-1))
             current_end = end
 
+    # TODO treat    ,' abc.    as .'
+
     return dialogues, question_ids
 
+
+# with open('/home/u148187/datasets/bookcorpus/out_txts/152__princess-electra.txt') as file:
+#     extract_dialogues(file.read(), debug=True)
+
+
+def extract_dialogues_smarter(path, inter_dialogue_distance):
+    quote_pattern = '("|“)([^("|”)]*)[^ ]("|”)'
+
+    with open(path) as file:
+
+        previous_end_idx = 0
+        total_idx = 0
+
+        all_dialogues = []
+        all_question_ids = []
+
+        current_dialogue = []
+        current_question_ids = []
+
+        for i, line in enumerate(file):
+
+            current_turn = []
+
+            for j, match in enumerate(re.finditer(quote_pattern, line)):
+                current_start_idx = total_idx + match.start(0)
+
+                if (current_start_idx - previous_end_idx) > inter_dialogue_distance:
+                    # It might be neat to check independently for INTER_TURN_DISTANCE as well,
+                    # but I'm assuming turns are always delineated by newlines OR new dialogues.
+                    if current_turn != []:
+                        current_dialogue.append(current_turn)
+                        current_turn = []
+                    if current_dialogue != []:
+                        all_dialogues.append(current_dialogue)
+                        current_dialogue = []
+
+                quote = match.group(0).strip("\"“”")
+
+                # For constructions like '"Blablabla," he said.'
+                if quote.endswith(','):
+                    next_period = re.search('.', line[match.end()+1:])      # Problem: ...said Dr. Dre...
+                    next_quote = re.search(quote_pattern, line[match.end()+1:])
+                    if next_period is None or next_quote is None or next_period.start() < next_quote.start():
+                        quote = quote[:-1] + '.'
+
+                # Append to current turn
+                current_turn.append(quote)
+                previous_end_idx = total_idx + match.end()
+
+            # If there was a turn, append it to the dialogue
+            if current_turn != []:
+                current_dialogue.append(current_turn)
+
+            total_idx += len(line)
+
+        # If there was a dialogue, append it to the dialogue
+        if current_dialogue != []:
+            all_dialogues.append(current_dialogue)
+
+    return all_dialogues
+
+all_dialogues = extract_dialogues_smarter('/home/u148187/datasets/bookcorpus/out_txts/666__the-son-of-man.txt', inter_dialogue_distance=INTER_DIALOGUE_DISTANCE)
+for dia in all_dialogues:
+    print('-'+'\n-'.join([' '.join(turn) for turn in dia]))
+    print('------------------')
 
 def fragment_to_csv(fragment, id, out):
     wr = csv.writer(open(out, 'a'))
