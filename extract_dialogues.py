@@ -158,10 +158,10 @@ def extract_dialogues_smarter(path, inter_dialogue_distance):
 
     return all_dialogues
 
-all_dialogues = extract_dialogues_smarter('/home/u148187/datasets/bookcorpus/out_txts/666__the-son-of-man.txt', inter_dialogue_distance=INTER_DIALOGUE_DISTANCE)
-for dia in all_dialogues:
-    print('-'+'\n-'.join([' '.join(turn) for turn in dia]))
-    print('------------------')
+# all_dialogues = extract_dialogues_smarter('/home/u148187/datasets/bookcorpus/out_txts/666__the-son-of-man.txt', inter_dialogue_distance=INTER_DIALOGUE_DISTANCE)
+# for dia in all_dialogues:
+#     print('-'+'\n-'.join([' '.join(turn) for turn in dia]))
+#     print('------------------')
 
 def fragment_to_csv(fragment, id, out):
     wr = csv.writer(open(out, 'a'))
@@ -359,3 +359,51 @@ def extract_subtitles_xml_to_text(path):
             out_file.write('\n'.join(sents))
 
 # extract_subtitles_xml_to_text('/home/u148187/datasets/OpenSubtitles_en')
+
+
+def extract_SPICE_xml_to_text(path):
+    if os.path.isfile(path):
+        paths = [path]
+    else:
+        paths = glob.glob(path + '/**/*.xml', recursive=True)
+
+    eventses = {}
+
+    for path in paths:
+        root = xml.etree.ElementTree.parse(path).getroot().find("basic-body")
+        num_events = len(root.find("common-timeline"))
+        events = [None] * num_events
+        for child in root:
+            if child.tag == "tier" and child.get('category') == "n":
+                speaker = child.get('speaker')
+                for event in child:
+                    events[int(event.get("start")[1:])-1] = (speaker, event.text)
+
+        eventses[os.path.basename(path)] = events
+
+    return eventses
+
+def print_SPICE_dialogue(events):
+    prev_speaker = None
+    prev_utterance = ""
+    for e in events:
+        if e is not None:
+            if prev_speaker is None:
+                prev_speaker = e[0]
+            if e[0] == prev_speaker:
+                prev_utterance += e[1]
+            else:
+                print(prev_speaker +":", prev_utterance)
+                prev_speaker = e[0]
+                prev_utterance = e[1]
+
+
+# eventses = extract_SPICE_xml_to_text('/home/matthijs/datasets/SPICE-CR-XML')
+#
+# for key in eventses.keys():
+#     print('==============================')
+#     print('==========',key,'========')
+#     print('==============================')
+#     print_SPICE_dialogue(eventses[key])
+#
+
