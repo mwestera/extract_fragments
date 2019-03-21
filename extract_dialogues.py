@@ -137,7 +137,7 @@ def extract_dialogues_smarter(path, inter_dialogue_distance):
 
                 # For constructions like '"Blablabla," he said.'
                 if quote.endswith(','):
-                    next_period = re.search('.', line[match.end()+1:])      # Problem: ...said Dr. Dre...
+                    next_period = re.search('\.', line[match.end()+1:])      # Problem: ...said Dr. Dre...
                     next_quote = re.search(quote_pattern, line[match.end()+1:])
                     if next_period is None or next_quote is None or next_period.start() < next_quote.start():
                         quote = quote[:-1] + '.'
@@ -196,7 +196,7 @@ def fragments_from_bookcorpus():
             if len(dialogue) > MIN_DIALOGUE_LENGTH:
                  dialogue_to_csv(dialogue, 'BookCorpus/' + os.path.basename(p), OUT_CSV_BOOKS_PLAIN)
 
-    # Use Quote Attribution from StanfordNLP
+    # Use Quote Attribution from StanfordNLP; Nah it takes long and has very buggy results.
 
 
 ## MovieDIC corpus
