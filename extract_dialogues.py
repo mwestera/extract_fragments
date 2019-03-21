@@ -20,6 +20,7 @@ data_paths = {'lambada': '/home/u148187/datasets/LAMBADA',
           'moviedic': '/home/u148187/datasets/MovieDiC_V2/MovieDiC_V2.xml',
           'santabarbara': '/home/u148187/datasets/santa barbara corpus/TRN',
           'switchboard': '',
+          'bookcorpus': '/home/u148187/datasets/bookcorpus/out_txts/',
         }
 
 # TODO also do gutenberg and books corpus.
@@ -102,7 +103,7 @@ def extract_dialogues(text):
 #     extract_dialogues(file.read(), debug=True)
 
 
-def extract_dialogues_smarter(path, inter_dialogue_distance):
+def extract_dialogues_smarter(path, min_dialogue_spacing, min_length):
     quote_pattern = '("|“)([^("|”)]*)[^ ]("|”)'
 
     with open(path) as file:
@@ -123,15 +124,15 @@ def extract_dialogues_smarter(path, inter_dialogue_distance):
             for j, match in enumerate(re.finditer(quote_pattern, line)):
                 current_start_idx = total_idx + match.start(0)
 
-                if (current_start_idx - previous_end_idx) > inter_dialogue_distance:
+                if (current_start_idx - previous_end_idx) >= min_dialogue_spacing:
                     # It might be neat to check independently for INTER_TURN_DISTANCE as well,
                     # but I'm assuming turns are always delineated by newlines OR new dialogues.
                     if current_turn != []:
                         current_dialogue.append(current_turn)
                         current_turn = []
-                    if current_dialogue != []:
+                    if len(current_dialogue) >= min_length:
                         all_dialogues.append(current_dialogue)
-                        current_dialogue = []
+                    current_dialogue = []
 
                 quote = match.group(0).strip("\"“”")
 
@@ -152,16 +153,27 @@ def extract_dialogues_smarter(path, inter_dialogue_distance):
 
             total_idx += len(line)
 
-        # If there was a dialogue, append it to the dialogue
-        if current_dialogue != []:
+        # If there was a dialogue, append it to the dialogues
+        if len(current_dialogue) >= min_length:
             all_dialogues.append(current_dialogue)
 
     return all_dialogues
 
-# all_dialogues = extract_dialogues_smarter('/home/u148187/datasets/bookcorpus/out_txts/666__the-son-of-man.txt', inter_dialogue_distance=INTER_DIALOGUE_DISTANCE)
-# for dia in all_dialogues:
-#     print('-'+'\n-'.join([' '.join(turn) for turn in dia]))
-#     print('------------------')
+bookcorpus_paths = glob.glob(data_paths['bookcorpus'] + '/*.txt')
+min_dialogue_spacing = 200
+min_length = 5
+out_file = 'output/bookcorpus_dialogues_{}_{}.csv'.format(min_dialogue_spacing, min_length)
+if os.path.exists(out_file):
+    if not input('Output file already exists. Overwrite?').startswith("y"):
+        quit()
+with open(out_file, 'w') as output:
+    for i, path in enumerate(bookcorpus_paths):
+        print('Book', i, 'of', len(bookcorpus_paths))
+        all_dialogues = extract_dialogues_smarter(path, min_dialogue_spacing, min_length)
+        for dia in all_dialogues:
+            output.write(os.path.basename(path)[:-4] + ',' + ','.join([' '.join(turn) for turn in dia]) + '\n')
+
+
 
 def fragment_to_csv(fragment, id, out):
     wr = csv.writer(open(out, 'a'))
