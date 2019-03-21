@@ -167,11 +167,12 @@ if os.path.exists(out_file):
     if not input('Output file already exists. Overwrite?').startswith("y"):
         quit()
 with open(out_file, 'w') as output:
+    writer = csv.writer(output);
     for i, path in enumerate(bookcorpus_paths):
         print('Book', i, 'of', len(bookcorpus_paths))
         all_dialogues = extract_dialogues_smarter(path, min_dialogue_spacing, min_length)
         for dia in all_dialogues:
-            output.write(os.path.basename(path)[:-4] + ',' + ','.join([' '.join(turn) for turn in dia]) + '\n')
+            writer.writerow([os.path.basename(path)[:-4]] + [' '.join(turn) for turn in dia])
 
 
 
