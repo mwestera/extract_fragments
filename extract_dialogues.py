@@ -138,7 +138,7 @@ def extract_dialogues_smarter(path, min_dialogue_spacing, min_length):
 
                 # For constructions like '"Blablabla," he said.'
                 if quote.endswith(','):
-                    next_period = re.search('\.', line[match.end()+1:])      # Problem: ...said Dr. Dre...
+                    next_period = re.search('\.', line[match.end()+1:])      # TODO Problem: ...said Dr. Dre...
                     next_quote = re.search(quote_pattern, line[match.end()+1:])
                     if next_period is None or next_quote is None or next_period.start() < next_quote.start():
                         quote = quote[:-1] + '.'
@@ -159,20 +159,20 @@ def extract_dialogues_smarter(path, min_dialogue_spacing, min_length):
 
     return all_dialogues
 
-bookcorpus_paths = glob.glob(data_paths['bookcorpus'] + '/*.txt')
-min_dialogue_spacing = 200
-min_length = 5
-out_file = 'output/bookcorpus_dialogues_{}_{}.csv'.format(min_dialogue_spacing, min_length)
-if os.path.exists(out_file):
-    if not input('Output file already exists. Overwrite?').startswith("y"):
-        quit()
-with open(out_file, 'w') as output:
-    writer = csv.writer(output);
-    for i, path in enumerate(bookcorpus_paths):
-        print('Book', i, 'of', len(bookcorpus_paths))
-        all_dialogues = extract_dialogues_smarter(path, min_dialogue_spacing, min_length)
-        for dia in all_dialogues:
-            writer.writerow([os.path.basename(path)[:-4]] + [' '.join(turn) for turn in dia])
+# bookcorpus_paths = glob.glob(data_paths['bookcorpus'] + '/*.txt')
+# min_dialogue_spacing = 200
+# min_length = 5
+# out_file = 'output/bookcorpus_dialogues_{}_{}.csv'.format(min_dialogue_spacing, min_length)
+# if os.path.exists(out_file):
+#     if not input('Output file already exists. Overwrite?').startswith("y"):
+#         quit()
+# with open(out_file, 'w') as output:
+#     writer = csv.writer(output);
+#     for i, path in enumerate(bookcorpus_paths):
+#         print('Book', i, 'of', len(bookcorpus_paths))
+#         all_dialogues = extract_dialogues_smarter(path, min_dialogue_spacing, min_length)
+#         for dia in all_dialogues:
+#             writer.writerow([os.path.basename(path)[:-4]] + [' '.join(turn) for turn in dia])
 
 
 
@@ -321,7 +321,7 @@ def rewrite_tokenized_sentence_based(csv_src):
 
 # rewrite_tokenized_sentence_based('output/dialogues_bookcorpus-len5.csv')
 
-def newline_sentences_for_BERT(csv_src, separator=True):
+def newline_sentences_for_BERT(csv_src, separator=True, id_last=False):
 
     csvreader = csv.reader(open(csv_src))
     with open(csv_src[:-4]+'-BERT.txt', 'w+') as out_file:
@@ -331,13 +331,23 @@ def newline_sentences_for_BERT(csv_src, separator=True):
                 print('Sententializing rows {0}++ of {1}'.format(i, csv_src))
             if i > 0:
                 out_file.write('\n\n' if separator else '\n')
-            dialogue = ' '.join(row[:-1])
+            if id_last:
+                row = row[:-1]
+            else:
+                row = row[1:]
+            dialogue = ' '.join(row)
             sents = nltk.tokenize.sent_tokenize(dialogue)
             out_file.write('\n'.join(sents))
 
+# newline_sentences_for_BERT('output/bookcorpus_dialogues_200_5.csv', separator=True)
 
-def newline_turns_for_BERT(csv_src, separator=True):
-
+def newline_turns_for_BERT(csv_src, separator=True, id_last=False):
+    """
+    The data should be a text file in the same format as sample_text.txt
+    (one sentence per line, docs separated by empty line). You can download
+    an exemplary training corpus generated from wikipedia articles and splitted
+    into ~500k sentences with spaCy.
+    """
     csvreader = csv.reader(open(csv_src))
     with open(csv_src[:-4]+'-BERT.txt', 'w+') as out_file:
 
@@ -346,10 +356,13 @@ def newline_turns_for_BERT(csv_src, separator=True):
                 print('Newlining rows {0}++ of {1}'.format(i, csv_src))
             if i > 0:
                 out_file.write('\n\n' if separator else '\n')
-            out_file.write('\n'.join(row[:-1]))
+            if id_last:
+                row = row[:-1]
+            else:
+                row = row[1:]
+            out_file.write('\n'.join(row))
 
-# newline_turns_for_BERT('output/dialogues_bookcorpus-len5.csv', separator=False)
-
+# newline_turns_for_BERT('output/bookcorpus_dialogues_200_5.csv', separator=False)
 
 def extract_subtitles_xml_to_text(path):
     if os.path.isfile(path):
