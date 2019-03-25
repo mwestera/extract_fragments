@@ -161,7 +161,7 @@ def extract_dialogues_smarter(path, min_dialogue_spacing, min_length):
 
 # bookcorpus_paths = glob.glob(data_paths['bookcorpus'] + '/*.txt')
 # min_dialogue_spacing = 200
-# min_length = 5
+# min_length = 2
 # out_file = 'output/bookcorpus_dialogues_{}_{}.csv'.format(min_dialogue_spacing, min_length)
 # if os.path.exists(out_file):
 #     if not input('Output file already exists. Overwrite?').startswith("y"):
@@ -316,6 +316,42 @@ def rewrite_tokenized_sentence_based(csv_src):
 
         else:
             print('oops, empty answer string in row', i, '; ignoring, moving on!')
+
+
+def prepare_for_BERT_baseline(csv_src, n_adv_questions):
+    csvreader = csv.reader(open(csv_src))
+
+    print("Composing QA and AQ items...")
+
+    # first gather all questions
+    questions = []
+    QA_items = []
+    AQ_items = []
+    for i, row in enumerate(csvreader):
+        row = row[1:]
+        for j, item in enumerate(row):
+            if item.endswith("?"):
+                if i > 0:
+                    AQ_items.append([row[j-1], row[j]])
+                if i < len(row)-1:
+                    QA_items.append([row[j], row[j+1]])
+                questions.append(item)
+
+    print("Writing to files...")
+
+    with open(csv_src[:-4] + '-BERT-AQ-{}.txt'.format(n_adv_questions), 'w+') as out_file_AQ:
+        for item in AQ_items:
+            adv_questions = random.sample(questions, n_adv_questions)
+            for each_question in [item[1]] + adv_questions:
+                out_file_AQ.write(item[0] + '\n' + each_question + '\n')
+
+    with open(csv_src[:-4] + '-BERT-QA-{}.txt'.format(n_adv_questions), 'w+') as out_file_QA:
+        for item in QA_items:
+            adv_questions = random.sample(questions, n_adv_questions)
+            for each_question in [item[0]] + adv_questions:
+                out_file_AQ.write(each_question + '\n' + item[1] + '\n')
+
+prepare_for_BERT_baseline('output/bookcorpus_dialogues_200_2.csv', 20)
 
 # fragments_from_bookcorpus()
 
