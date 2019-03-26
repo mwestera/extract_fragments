@@ -318,7 +318,7 @@ def rewrite_tokenized_sentence_based(csv_src):
             print('oops, empty answer string in row', i, '; ignoring, moving on!')
 
 
-def prepare_for_BERT_baseline(csv_src, n_adv_questions):
+def prepare_for_BERT_baseline(csv_src, n_questions):
     csvreader = csv.reader(open(csv_src))
 
     print("Composing QA and AQ items...")
@@ -339,15 +339,15 @@ def prepare_for_BERT_baseline(csv_src, n_adv_questions):
 
     print("Writing to files... QA_items: {}, AQ_items: {}, questions: {}".format(len(QA_items), len(AQ_items), len(questions)))
 
-    with open(csv_src[:-4] + '-BERT-AQ-{}.txt'.format(n_adv_questions), 'w+') as out_file_AQ:
+    with open(csv_src[:-4] + '-BERT-AQ-{}.txt'.format(n_questions), 'w+') as out_file_AQ:
         for item in AQ_items:
-            adv_questions = random.sample(questions, n_adv_questions)
+            adv_questions = random.sample(questions, n_questions-1)
             for each_question in [item[1]] + adv_questions:
                 out_file_AQ.write(item[0] + ' ||| ' + each_question + '\n')
 
-    with open(csv_src[:-4] + '-BERT-QA-{}.txt'.format(n_adv_questions), 'w+') as out_file_QA:
+    with open(csv_src[:-4] + '-BERT-QA-{}.txt'.format(n_questions), 'w+') as out_file_QA:
         for item in QA_items:
-            adv_questions = random.sample(questions, n_adv_questions)
+            adv_questions = random.sample(questions, n_questions-1)
             for each_question in [item[0]] + adv_questions:
                 out_file_QA.write(each_question + ' ||| ' + item[1] + '\n')
 
