@@ -337,7 +337,7 @@ def prepare_for_BERT_baseline(csv_src, n_adv_questions):
                     QA_items.append([row[j], row[j+1]])
                 questions.append(item)
 
-    print("Writing to files...")
+    print("Writing to files... QA_items: {}, AQ_items: {}, questions: {}".format(len(QA_items), len(AQ_items), len(questions)))
 
     with open(csv_src[:-4] + '-BERT-AQ-{}.txt'.format(n_adv_questions), 'w+') as out_file_AQ:
         for item in AQ_items:
