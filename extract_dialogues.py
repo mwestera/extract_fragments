@@ -331,9 +331,9 @@ def prepare_for_BERT_baseline(csv_src, n_adv_questions):
         row = row[1:]
         for j, item in enumerate(row):
             if item.endswith("?"):
-                if i > 0:
+                if j > 0:
                     AQ_items.append([row[j-1], row[j]])
-                if i < len(row)-1:
+                if j < len(row)-1:
                     QA_items.append([row[j], row[j+1]])
                 questions.append(item)
 
