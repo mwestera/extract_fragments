@@ -373,12 +373,13 @@ def prepare_for_BERT_baseline_AQA(csv_src, n_questions):
 
     print("Writing to files... AQA_items: {}, questions: {}".format(len(AQA_items), len(questions)))
 
-    with open(csv_src[:-4] + '-BERT-AQA-{}.txt'.format(n_questions), 'w+') as out_file_AQA:
-        for item in AQA_items:
-            adv_questions = random.sample(questions, n_questions-1)
-            for each_question in [item[1]] + adv_questions:
-                out_file_AQA.write(item[0] + ' ||| ' + each_question + '\n')
-                out_file_AQA.write(each_question + ' ||| ' + item[2] + '\n')
+    with open(csv_src[:-4] + '-BERT-AQ-{}.txt'.format(n_questions), 'w+') as out_file_AQ:
+        with open(csv_src[:-4] + '-BERT-QA-{}.txt'.format(n_questions), 'w+') as out_file_QA:
+            for item in AQA_items:
+                adv_questions = random.sample(questions, n_questions-1)
+                for each_question in [item[1]] + adv_questions:
+                    out_file_AQ.write(item[0] + ' ||| ' + each_question + '\n')
+                    out_file_QA.write(each_question + ' ||| ' + item[2] + '\n')
 
 prepare_for_BERT_baseline_AQA('output/bookcorpus_dialogues_200_3.csv', 20)
 
