@@ -331,7 +331,7 @@ def prepare_for_BERT_baseline(csv_src, n_adv_questions):
         row = row[1:]
         for j, item in enumerate(row):
             if item.endswith("?"):
-                if i > 0:   # TODO Maybe collect only single sentences here; but let's see how BERT treats the multi-sentence case.
+                if i > 0:
                     AQ_items.append([row[j-1], row[j]])
                 if i < len(row)-1:
                     QA_items.append([row[j], row[j+1]])
@@ -343,13 +343,13 @@ def prepare_for_BERT_baseline(csv_src, n_adv_questions):
         for item in AQ_items:
             adv_questions = random.sample(questions, n_adv_questions)
             for each_question in [item[1]] + adv_questions:
-                out_file_AQ.write(item[0] + '\n' + each_question + '\n')     ## TODO: Separator seems to be |||
+                out_file_AQ.write(item[0] + ' ||| ' + each_question + '\n')
 
     with open(csv_src[:-4] + '-BERT-QA-{}.txt'.format(n_adv_questions), 'w+') as out_file_QA:
         for item in QA_items:
             adv_questions = random.sample(questions, n_adv_questions)
             for each_question in [item[0]] + adv_questions:
-                out_file_QA.write(each_question + '\n' + item[1] + '\n')    ## TODO: Separator seems to be |||
+                out_file_QA.write(each_question + ' ||| ' + item[1] + '\n')
 
 prepare_for_BERT_baseline('output/bookcorpus_dialogues_200_2.csv', 20)
 
