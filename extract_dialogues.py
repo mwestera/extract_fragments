@@ -161,7 +161,7 @@ def extract_dialogues_smarter(path, min_dialogue_spacing, min_length):
 
 # bookcorpus_paths = glob.glob(data_paths['bookcorpus'] + '/*.txt')
 # min_dialogue_spacing = 200
-# min_length = 2
+# min_length = 3
 # out_file = 'output/bookcorpus_dialogues_{}_{}.csv'.format(min_dialogue_spacing, min_length)
 # if os.path.exists(out_file):
 #     if not input('Output file already exists. Overwrite?').startswith("y"):
@@ -351,7 +351,37 @@ def prepare_for_BERT_baseline(csv_src, n_questions):
             for each_question in [item[0]] + adv_questions:
                 out_file_QA.write(each_question + ' ||| ' + item[1] + '\n')
 
-prepare_for_BERT_baseline('output/bookcorpus_dialogues_200_2.csv', 20)
+# prepare_for_BERT_baseline('output/bookcorpus_dialogues_200_2.csv', 20)
+
+
+
+def prepare_for_BERT_baseline_AQA(csv_src, n_questions):
+    csvreader = csv.reader(open(csv_src))
+
+    print("Composing AQA items...")
+
+    # first gather all questions
+    questions = []
+    AQA_items = []
+    for i, row in enumerate(csvreader):
+        row = row[1:]
+        for j, item in enumerate(row):
+            if item.endswith("?"):
+                if j > 0 and j < len(row)-1:
+                    AQA_items.append([row[j-1], row[j], row[j+1]])
+                questions.append(item)
+
+    print("Writing to files... AQA_items: {}, questions: {}".format(len(AQA_items), len(questions)))
+
+    with open(csv_src[:-4] + '-BERT-AQA-{}.txt'.format(n_questions), 'w+') as out_file_AQA:
+        for item in AQA_items:
+            adv_questions = random.sample(questions, n_questions-1)
+            for each_question in [item[1]] + adv_questions:
+                out_file_AQA.write(item[0] + ' ||| ' + each_question + '\n')
+                out_file_AQA.write(each_question + ' ||| ' + item[2] + '\n')
+
+prepare_for_BERT_baseline_AQA('output/bookcorpus_dialogues_200_3.csv', 20)
+
 
 # fragments_from_bookcorpus()
 
