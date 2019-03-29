@@ -381,7 +381,42 @@ def prepare_for_BERT_baseline_AQA(csv_src, n_questions):
                     out_file_AQ.write(item[0] + ' ||| ' + each_question + '\n')
                     out_file_QA.write(each_question + ' ||| ' + item[2] + '\n')
 
-prepare_for_BERT_baseline_AQA('output/bookcorpus_dialogues_200_3.csv', 20)
+# prepare_for_BERT_baseline_AQA('output/bookcorpus_dialogues_200_3.csv', 20)
+
+
+
+
+def prepare_for_BERT_baseline_AAA(csv_src, n_assertions):
+    csvreader = csv.reader(open(csv_src))
+
+    print("Composing AAA items...")
+
+    # first gather all questions
+    total_AAA = 0
+    assertions = []
+    AAA = []
+    for i, row in enumerate(csvreader):
+        row = row[1:]
+        for j, item in enumerate(row):
+            if not item.endswith("?"):
+                if j > 0 and j < len(row)-1:
+                    AAA.append([row[j-1], row[j], row[j+1]])
+                    total_AAA += 1
+                assertions.append(item)
+            if total_AAA > 100000:
+                break
+
+    print("Writing to files... AAA_items: {}, assertions: {}".format(len(AAA), len(assertions)))
+
+    with open(csv_src[:-4] + '-BERT-A1A2-{}.txt'.format(n_assertions), 'w+') as out_file_A1A2:
+        with open(csv_src[:-4] + '-BERT-A2A3-{}.txt'.format(n_assertions), 'w+') as out_file_A2A3:
+            for item in AAA:
+                adv_questions = random.sample(assertions, n_assertions - 1)
+                for each_assertion in [item[1]] + adv_questions:
+                    out_file_A1A2.write(item[0] + ' ||| ' + each_assertion + '\n')
+                    out_file_A2A3.write(each_assertion + ' ||| ' + item[2] + '\n')
+
+prepare_for_BERT_baseline_AAA('output/bookcorpus_dialogues_200_3.csv', 20)
 
 
 # fragments_from_bookcorpus()
