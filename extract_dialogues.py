@@ -489,6 +489,7 @@ def extract_subtitles_xml_to_text(path):
 # extract_subtitles_xml_to_text('/home/u148187/datasets/OpenSubtitles_en')
 
 
+### DUPLICATE IN IBEX REPO ###
 def extract_SPICE_xml_to_text(path):
     if os.path.isfile(path):
         paths = [path]
